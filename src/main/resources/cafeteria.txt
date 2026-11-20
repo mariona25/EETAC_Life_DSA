@@ -1,0 +1,5 @@
+idItem;name;priceCoins;energyRecovery
+caf_1;Cafè amb llet;10;15
+caf_2;Entrepà de fuet;25;40
+caf_3;Monster Energy;30;50
+caf_4;Menú del dia EETAC;50;80

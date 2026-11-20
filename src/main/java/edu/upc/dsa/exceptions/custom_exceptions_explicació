@@ -1,0 +1,15 @@
+CUSTOM EXCEPTIONS
+==================
+
+Purpose:
+These 4 custom exception classes separate the core business logic (GameManagerImpl) from the REST API communication layer (Services). Instead of returning null or generic errors when a game rule is violated, the manager throws an HTTP-aligned exception with a descriptive message.
+
+How it works:
+1. Business Logic Layer (GameManagerImpl): Validates conditions (e.g., checking if a user exists, if credentials match, or if the student has enough coins) and throws the corresponding exception if a check fails.
+2. REST API Layer (Services): Catches these exceptions and translates them directly into standard HTTP status codes for the Web and Android clients.
+
+Exception Mapping:
+- BadRequestException   -> HTTP 400 Bad Request (Insufficient coins, not enough energy, invalid parameters)
+- UnauthorizedException -> HTTP 401 Unauthorized (Incorrect password during login)
+- NotFoundException     -> HTTP 404 Not Found (User ID, username, or cafeteria product does not exist)
+- ConflictException     -> HTTP 409 Conflict (Username or email is already registered)
