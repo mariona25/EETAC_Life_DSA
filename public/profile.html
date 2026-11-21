@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile - EETAC Life</title>
+</head>
+<body>
+<h1>Perfil de l'estudiant</h1>
+
+<div id="profile-data">Carregant perfil...</div>
+<p id="message"></p>
+
+<p>
+    <button onclick="logout()">Tancar sessió</button>
+    <button onclick="deleteAccount()">Eliminar compte</button>
+</p>
+
+<p>
+    <a href="shop.html">Anar a la Cafeteria</a> |
+    <a href="index.html">Inici</a>
+</p>
+
+<script>
+    const API_URL = "/dsaApp";
+
+    async function loadProfile() {
+        const token = localStorage.getItem("token");
+        const container = document.getElementById("profile-data");
+
+        if (!token) {
+            container.innerHTML = 'No has iniciat sessió. <a href="login.html">Ves al Login</a>.';
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/estudiants/me`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const user = await res.json();
+                const minigames = (user.passedMinigames && user.passedMinigames.length > 0)
+                    ? user.passedMinigames.join(", ")
+                    : "Cap";
+
+                container.innerHTML = `
+            <ul>
+              <li>ID: ${user.idUser}</li>
+              <li>Usuari: ${user.username}</li>
+              <li>Email: ${user.email}</li>
+              <li>Monedes: ${user.coins}</li>
+              <li>Energia: ${user.energy}</li>
+              <li>ECTS: ${user.ects}</li>
+              <li>Graduat: ${user.graduated ? "Sí" : "No"}</li>
+              <li>Minijocs superats: ${minigames}</li>
+            </ul>
+          `;
+            } else {
+                const errorText = await res.text();
+                container.innerHTML = `Sessió no vàlida (${res.status}: ${errorText}). <a href="login.html">Torna a entrar</a>.`;
+            }
+        } catch (err) {
+            container.innerText = "Error de connexió amb el servidor.";
+        }
+    }
+
+    async function deleteAccount() {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        if (!confirm("Segur que vols eliminar el teu compte permanentment?")) return;
+
+        const msg = document.getElementById("message");
+        try {
+            const res = await fetch(`${API_URL}/api/estudiants/me`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                localStorage.removeItem("token");
+                localStorage.removeItem("username");
+                alert("Compte eliminat correctament.");
+                window.location.href = "register.html";
+            } else {
+                const errorText = await res.text();
+                msg.innerText = `Error (${res.status}): ${errorText}`;
+            }
+        } catch (err) {
+            msg.innerText = "Error de connexió amb el servidor.";
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        window.location.href = "login.html";
+    }
+
+    loadProfile();
+</script>
+</body>
+</html>
