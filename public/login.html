@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - EETAC Life</title>
+</head>
+<body>
+<h1>Iniciar sessió</h1>
+
+<label>Usuari: <input type="text" id="username"></label><br>
+<label>Contrasenya: <input type="password" id="password"></label><br>
+<button onclick="login()">Entrar</button>
+
+<p id="message"></p>
+
+<p>
+  <a href="register.html">No tens compte? Registra't</a> |
+  <a href="index.html">Inici</a>
+</p>
+
+<script>
+  const API_URL = "/dsaApp";
+
+  async function login() {
+    const credentials = {
+      username: document.getElementById("username").value.trim(),
+      password: document.getElementById("password").value
+    };
+
+    const msg = document.getElementById("message");
+
+    try {
+      const res = await fetch(`${API_URL}/api/estudiants/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials)
+      });
+
+      if (res.ok) {
+        const auth = await res.json();
+        localStorage.setItem("token", auth.token);
+        localStorage.setItem("username", auth.user.username);
+        window.location.href = "shop.html";
+      } else {
+        const errorText = await res.text();
+        msg.innerText = `Error (${res.status}): ${errorText}`;
+      }
+    } catch (err) {
+      msg.innerText = "Error de connexió amb el servidor.";
+    }
+  }
+</script>
+</body>
+</html>
