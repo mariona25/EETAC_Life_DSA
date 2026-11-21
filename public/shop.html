@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <title>Cafeteria - EETAC Life</title>
+</head>
+<body>
+<h1>Cafeteria de l'EETAC</h1>
+
+<p id="user-stats">Carregant estat de l'estudiant...</p>
+
+<h2>Menú disponible</h2>
+<ul id="menu-list"></ul>
+
+<p id="message"></p>
+
+<p>
+  <a href="profile.html">El meu perfil</a> |
+  <a href="index.html">Inici</a> |
+  <button onclick="logout()">Tancar sessió</button>
+</p>
+
+<script>
+  const API_URL = "/dsaApp";
+
+  function getToken() {
+    return localStorage.getItem("token");
+  }
+
+  function renderStats(user) {
+    document.getElementById("user-stats").innerText =
+            `Estudiant: ${user.username} | Monedes: ${user.coins} | Energia: ${user.energy} | ECTS: ${user.ects}`;
+  }
+
+  async function loadUserStats() {
+    const token = getToken();
+    if (!token) {
+      document.getElementById("user-stats").innerHTML =
+              'No has iniciat sessió. <a href="login.html">Fes login per comprar</a>.';
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/estudiants/me`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        const user = await res.json();
+        renderStats(user);
+      } else {
+        document.getElementById("user-stats").innerHTML =
+                'Sessió caducada o invàlida. <a href="login.html">Torna a fer login</a>.';
+      }
+    } catch (err) {
+      document.getElementById("user-stats").innerText = "No s'ha pogut carregar l'usuari.";
+    }
+  }
+
+  async function loadMenu() {
+    const list = document.getElementById("menu-list");
+    try {
+      const res = await fetch(`${API_URL}/api/cafeteria/menu`);
+      const items = await res.json();
+
+      list.innerHTML = "";
+      if (items.length === 0) {
+        list.innerHTML = "<li>No hi ha productes al menú.</li>";
+        return;
+      }
+
+      items.forEach(item => {
+        const li = document.createElement("li");
+        li.innerHTML = `${item.name} — Preu: ${item.priceCoins} monedes (+${item.energyRecovery} energia) ` +
+                `<button onclick="buyItem('${item.idItem}')">Comprar</button>`;
+        list.appendChild(li);
+      });
+    } catch (err) {
+      document.getElementById("message").innerText = "Error carregant el menú de la cafeteria.";
+    }
+  }
+
+  async function buyItem(producteId) {
+    const token = getToken();
+    const msg = document.getElementById("message");
+
+    if (!token) {
+      msg.innerText = "Has d'iniciar sessió abans de comprar.";
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/cafeteria/compres`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ producteId })
+      });
+
+      if (res.ok) {
+        const updatedUser = await res.json();
+        renderStats(updatedUser);
+        msg.innerText = `Compra feta! Ara tens ${updatedUser.coins} monedes i ${updatedUser.energy} d'energia.`;
+      } else {
+        const errorText = await res.text();
+        msg.innerText = `No s'ha pogut comprar (${res.status}): ${errorText}`;
+      }
+    } catch (err) {
+      msg.innerText = "Error de connexió amb el servidor.";
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    window.location.href = "login.html";
+  }
+
+  loadUserStats();
+  loadMenu();
+</script>
+</body>
+</html>
