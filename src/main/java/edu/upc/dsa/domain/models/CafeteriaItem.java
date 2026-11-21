@@ -2,18 +2,21 @@ package edu.upc.dsa.domain.models;
 
 import edu.upc.dsa.util.RandomUtils;
 
+/**
+ * Domain model representing a food or drink item available in the EETAC cafeteria.
+ */
 public class CafeteriaItem {
     private String idItem;
     private String name;
     private int priceCoins;
     private int energyRecovery;
 
-    // 1. Constructor buit (obligatori per a Jersey/JSON i genera ID automàtic si cal)
+    // 1. Empty constructor (required by Jersey/Jackson for JSON serialization; generates an automatic ID)
     public CafeteriaItem() {
         this.idItem = RandomUtils.getId();
     }
 
-    // 2. Constructor amb tots els camps (útil per crear productes amb un ID fix com "cafe_espresso")
+    // 2. Full constructor (useful for initializing catalog items with fixed IDs like "caf_1")
     public CafeteriaItem(String idItem, String name, int priceCoins, int energyRecovery) {
         this.idItem = idItem;
         this.name = name;
@@ -21,7 +24,7 @@ public class CafeteriaItem {
         this.energyRecovery = energyRecovery;
     }
 
-    // 3. Constructor sense ID (per si es crea un producte nou i volem ID automàtic)
+    // 3. Constructor without ID (generates an automatic ID via the empty constructor)
     public CafeteriaItem(String name, int priceCoins, int energyRecovery) {
         this();
         this.name = name;
@@ -29,7 +32,7 @@ public class CafeteriaItem {
         this.energyRecovery = energyRecovery;
     }
 
-    // Getters i Setters
+    // Getters and Setters
     public String getIdItem() { return idItem; }
     public void setIdItem(String idItem) { this.idItem = idItem; }
 

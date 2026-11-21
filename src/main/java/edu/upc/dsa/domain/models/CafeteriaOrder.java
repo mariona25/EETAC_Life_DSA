@@ -1,10 +1,14 @@
 package edu.upc.dsa.domain.models;
 
+/**
+ * Data Transfer Object (DTO) representing a cafeteria purchase order.
+ * Receives the producteId from the client JSON request and gets populated with the authenticated userId on the server.
+ */
 public class CafeteriaOrder {
     private String userId;
     private String producteId;
 
-    // Constructor buit obligatori per a Jersey/JSON
+    // Empty constructor required by Jersey/Jackson for JSON serialization
     public CafeteriaOrder() {}
 
     public CafeteriaOrder(String userId, String producteId) {
@@ -12,7 +16,7 @@ public class CafeteriaOrder {
         this.producteId = producteId;
     }
 
-    // Getters i Setters
+    // Getters and Setters
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
 
