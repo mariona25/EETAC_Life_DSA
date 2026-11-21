@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - EETAC Life</title>
+</head>
+<body>
+<h1>Registre d'estudiant</h1>
+
+<label>Usuari: <input type="text" id="username"></label><br>
+<label>Email: <input type="email" id="email"></label><br>
+<label>Contrasenya: <input type="password" id="password"></label><br>
+<button onclick="register()">Registrar-se</button>
+
+<p id="message"></p>
+
+<p>
+    <a href="login.html">Ja tens compte? Ves al Login</a> |
+    <a href="index.html">Inici</a>
+</p>
+
+<script>
+    const API_URL = "/dsaApp";
+
+    async function register() {
+        const credentials = {
+            username: document.getElementById("username").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            password: document.getElementById("password").value
+        };
+
+        const msg = document.getElementById("message");
+
+        // 1. Comprovar que no falti cap camp
+        if (!credentials.username || !credentials.email || !credentials.password) {
+            msg.innerText = "Has d'omplir tots els camps.";
+            return;
+        }
+
+        // 2. Comprovar format de correu (text@domini.extensio)
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(credentials.email)) {
+            msg.innerText = "El correu electrònic no té un format vàlid.";
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/estudiants/registre`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(credentials)
+            });
+
+            if (res.status === 201) {
+                const user = await res.json();
+                msg.innerText = `Estudiant ${user.username} registrat! Monedes: ${user.coins}, Energia: ${user.energy}. Ja pots fer login.`;
+            } else {
+                const errorText = await res.text();
+                msg.innerText = `Error (${res.status}): ${errorText}`;
+            }
+        } catch (err) {
+            msg.innerText = "Error de connexió amb el servidor.";
+        }
+    }
+</script>
+</body>
+</html>
