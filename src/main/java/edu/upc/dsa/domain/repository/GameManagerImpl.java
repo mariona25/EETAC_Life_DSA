@@ -1,9 +1,6 @@
 package edu.upc.dsa.domain.repository;
 
-import edu.upc.dsa.domain.models.CafeteriaItem;
-import edu.upc.dsa.domain.models.CafeteriaOrder;
-import edu.upc.dsa.domain.models.Credentials;
-import edu.upc.dsa.domain.models.User;
+import edu.upc.dsa.domain.models.*;
 import edu.upc.dsa.exceptions.BadRequestException;
 import edu.upc.dsa.exceptions.ConflictException;
 import edu.upc.dsa.exceptions.NotFoundException;
@@ -26,13 +23,17 @@ public class GameManagerImpl implements GameManager {
 
     private Map<String, User> users;
     private Map<String, CafeteriaItem> cafeteriaItems;
+    private Map<String, String> sessions; // Maps session token -> idUser
 
+    // Private constructor (Singleton pattern): initializes storage maps and loads the cafeteria menu
     private GameManagerImpl() {
         this.users = new HashMap<>();
         this.cafeteriaItems = new HashMap<>();
+        this.sessions = new HashMap<>();
         this.initCafeteriaItems();
     }
 
+    // Returns the single shared instance of GameManagerImpl across the entire backend
     public static GameManager getInstance() {
         if (instance == null) {
             instance = new GameManagerImpl();
@@ -40,6 +41,7 @@ public class GameManagerImpl implements GameManager {
         return instance;
     }
 
+    // Reads resources/cafeteria.txt line by line and populates the cafeteriaItems catalog
     private void initCafeteriaItems() {
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("cafeteria.txt")) {
             if (is == null) {
@@ -58,7 +60,7 @@ public class GameManagerImpl implements GameManager {
                         continue;
                     }
                     if (isFirstLine) {
-                        isFirstLine = false;
+                        isFirstLine = false; // Skip header line
                         continue;
                     }
 
@@ -82,9 +84,10 @@ public class GameManagerImpl implements GameManager {
     }
 
     // =========================================================================
-    // 1. MÈTODES DE TRADUCCIÓ (Nom humà -> ID intern)
+    // 1. LOOKUP & TRANSLATION METHODS
     // =========================================================================
 
+    // Finds and returns the internal idUser matching a given username
     @Override
     public String getUserIdByUsername(String username) throws NotFoundException {
         if (username == null || username.trim().isEmpty()) {
@@ -98,6 +101,7 @@ public class GameManagerImpl implements GameManager {
         throw new NotFoundException("User '" + username + "' not found.");
     }
 
+    // Finds and returns the internal idItem matching a cafeteria product's name
     @Override
     public String getCafeteriaItemIdByName(String productName) throws NotFoundException {
         if (productName == null || productName.trim().isEmpty()) {
@@ -112,9 +116,10 @@ public class GameManagerImpl implements GameManager {
     }
 
     // =========================================================================
-    // 2. GESTIÓ D'ESTUDIANTS
+    // 2. STUDENT MANAGEMENT & AUTHENTICATION
     // =========================================================================
 
+    // Validates input fields, checks for duplicate username/email, creates a new User, and stores it
     @Override
     public User registerUser(Credentials credentials) throws BadRequestException, ConflictException {
         logger.info("Attempting to register user: " + (credentials != null ? credentials.getUsername() : "null"));
@@ -148,6 +153,7 @@ public class GameManagerImpl implements GameManager {
         return newUser;
     }
 
+    // Verifies that the username exists and matches the provided password, returning the User
     @Override
     public User loginUser(Credentials credentials) throws BadRequestException, NotFoundException, UnauthorizedException {
         logger.info("Attempting login for user: " + (credentials != null ? credentials.getUsername() : "null"));
@@ -170,6 +176,7 @@ public class GameManagerImpl implements GameManager {
         return foundUser;
     }
 
+    // Retrieves a student's User profile using their username
     @Override
     public User getUserByUsername(String username) throws NotFoundException {
         logger.info("Fetching profile for username: " + username);
@@ -177,37 +184,54 @@ public class GameManagerImpl implements GameManager {
         return this.users.get(idUser);
     }
 
+    // Authenticates the user, generates a unique session token, stores the session, and returns AuthResponse
     @Override
-    public void deleteUserByUsername(String username, String password) throws BadRequestException, NotFoundException, UnauthorizedException {
-        logger.info("Attempting to delete user with username: " + username);
+    public AuthResponse loginWithToken(Credentials credentials) throws BadRequestException, NotFoundException, UnauthorizedException {
+        User foundUser = this.loginUser(credentials);
+        String token = java.util.UUID.randomUUID().toString();
+        this.sessions.put(token, foundUser.getIdUser());
+        logger.info("Token generated for user " + foundUser.getUsername() + ": " + token);
+        return new AuthResponse(token, foundUser);
+    }
 
-        if (password == null || password.trim().isEmpty()) {
-            logger.warn("Delete failed: password is required.");
-            throw new BadRequestException("Password is required to delete the account.");
+    // Extracts the Bearer token from the Authorization header and returns the corresponding authenticated User
+    @Override
+    public User getUserByToken(String authHeader) throws UnauthorizedException {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new UnauthorizedException("Missing or invalid Authorization header. Expected: 'Bearer <token>'");
         }
+        String token = authHeader.substring(7).trim();
+        String idUser = this.sessions.get(token);
 
-        String idUser = this.getUserIdByUsername(username);
-        User userToDelete = this.users.get(idUser);
-
-        if (!userToDelete.getPassword().equals(password)) {
-            logger.warn("Delete failed: invalid password for user -> " + username);
-            throw new UnauthorizedException("Invalid password. You can only delete your own account.");
+        if (idUser == null || !this.users.containsKey(idUser)) {
+            throw new UnauthorizedException("Invalid or expired session token.");
         }
+        return this.users.get(idUser);
+    }
+
+    // Validates the session token, deletes the user account from storage, and closes all active sessions for that user
+    @Override
+    public void deleteUserByToken(String authHeader) throws UnauthorizedException {
+        User userToDelete = this.getUserByToken(authHeader);
+        String idUser = userToDelete.getIdUser();
 
         this.users.remove(idUser);
-        logger.info("User deleted successfully: " + userToDelete.getUsername() + " (ID: " + idUser + ")");
+        this.sessions.values().removeIf(id -> id.equals(idUser));
+        logger.info("User deleted via token: " + userToDelete.getUsername());
     }
 
     // =========================================================================
-    // 3. CAFETERIA DEL CAMPUS (Treballa amb CafeteriaOrder i IDs reals)
+    // 3. CAMPUS CAFETERIA
     // =========================================================================
 
+    // Returns the full list of available food and drink items in the cafeteria
     @Override
     public List<CafeteriaItem> getCafeteriaCatalog() {
         logger.info("Fetching cafeteria catalog (" + this.cafeteriaItems.size() + " items).");
         return new ArrayList<>(this.cafeteriaItems.values());
     }
 
+    // Processes a cafeteria purchase: checks balance, deducts coins, restores energy, and returns updated User
     @Override
     public User buyCafeteriaItem(CafeteriaOrder order) throws NotFoundException, BadRequestException {
         if (order == null || order.getUserId() == null || order.getProducteId() == null) {
@@ -235,7 +259,7 @@ public class GameManagerImpl implements GameManager {
         }
 
         user.setCoins(user.getCoins() - item.getPriceCoins());
-        int updatedEnergy = Math.min(100, user.getEnergy() + item.getEnergyRecovery());
+        int updatedEnergy = Math.min(100, user.getEnergy() + item.getEnergyRecovery()); //MIRAR QUINA ENERGIA MÀXIMA VOLEM POSAR
         user.setEnergy(updatedEnergy);
 
         logger.info("Purchase successful: " + user.getUsername() + " bought " + item.getName()
@@ -243,21 +267,29 @@ public class GameManagerImpl implements GameManager {
         return user;
     }
 
+    // =========================================================================
+    // 4. UTILITY & TESTING METHODS
+    // =========================================================================
+
+    // Returns the total number of registered users
     @Override
     public int numUsers() {
         return this.users.size();
     }
 
+    // Returns the total number of items in the cafeteria catalog
     @Override
     public int numCafeteriaItems() {
         return this.cafeteriaItems.size();
     }
 
+    // Resets all stored users, sessions, and reloads the initial cafeteria catalog (used in JUnit tests)
     @Override
     public void clear() {
         this.users.clear();
         this.cafeteriaItems.clear();
         this.initCafeteriaItems();
+        this.sessions.clear();
         logger.info("GameManager state cleared and cafeteria items re-initialized.");
     }
 }

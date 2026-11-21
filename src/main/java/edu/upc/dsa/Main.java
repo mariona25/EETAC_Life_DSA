@@ -1,7 +1,6 @@
 package edu.upc.dsa;
 
 import io.swagger.jaxrs.config.BeanConfig;
-import io.swagger.jersey.listing.ApiListingResourceJSON;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.StaticHttpHandler;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -11,8 +10,7 @@ import java.io.IOException;
 import java.net.URI;
 
 /**
- * Main class.
- *
+ * Main class to initialize and start the Grizzly HTTP server with Jersey and Swagger.
  */
 public class Main {
     // Base URI the Grizzly HTTP server will listen on
@@ -23,8 +21,7 @@ public class Main {
      * @return Grizzly HTTP server.
      */
     public static HttpServer startServer() {
-        // create a resource config that scans for JAX-RS resources and providers
-        // in edu.upc.dsa package
+        // Create a resource config that scans for JAX-RS resources and providers in edu.upc.dsa.services
         final ResourceConfig rc = new ResourceConfig().packages("edu.upc.dsa.services");
 
         rc.register(io.swagger.jaxrs.listing.ApiListingResource.class);
@@ -34,25 +31,23 @@ public class Main {
 
         beanConfig.setHost("localhost:8080");
         beanConfig.setBasePath("/dsaApp");
-        beanConfig.setContact("support@example.com");
-        beanConfig.setDescription("REST API for DronManager");
+        beanConfig.setContact("support@eetaclife.upc.edu");
+        beanConfig.setDescription("REST API for EETAC Life Backend");
         beanConfig.setLicenseUrl("http://www.apache.org/licenses/LICENSE-2.0.html");
         beanConfig.setResourcePackage("edu.upc.dsa.services");
         beanConfig.setTermsOfServiceUrl("http://www.example.com/resources/eula");
-        beanConfig.setTitle("REST API");
+        beanConfig.setTitle("EETAC Life API");
         beanConfig.setVersion("1.0.0");
         beanConfig.setScan(true);
 
-        // create and start a new instance of grizzly http server
-        // exposing the Jersey application at BASE_URI
+        // Create and start a new instance of Grizzly HTTP server exposing the Jersey application at BASE_URI
         return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
     }
 
-
     /**
      * Main method.
-     * @param args
-     * @throws IOException
+     * @param args command line arguments
+     * @throws IOException if an I/O error occurs
      */
     public static void main(String[] args) throws IOException {
         final HttpServer server = startServer();
@@ -60,14 +55,10 @@ public class Main {
         StaticHttpHandler staticHttpHandler = new StaticHttpHandler("./public/");
         server.getServerConfiguration().addHttpHandler(staticHttpHandler, "/");
 
-
         System.out.println(String.format("Jersey app started with WADL available at "
-                + "%sapplication.wadl\nHit enter to stop it...", BASE_URI));
+                + "%sapplication.wadl\nSwagger UI available at http://localhost:8080/swagger/\nHit enter to stop it...", BASE_URI));
 
         System.in.read();
         server.stop();
     }
 }
-
-//Per veure swagger: http://localhost:8080/swagger/
-

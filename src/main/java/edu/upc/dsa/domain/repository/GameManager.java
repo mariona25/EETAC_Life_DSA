@@ -1,9 +1,6 @@
 package edu.upc.dsa.domain.repository;
 
-import edu.upc.dsa.domain.models.CafeteriaItem;
-import edu.upc.dsa.domain.models.CafeteriaOrder;
-import edu.upc.dsa.domain.models.Credentials;
-import edu.upc.dsa.domain.models.User;
+import edu.upc.dsa.domain.models.*;
 import edu.upc.dsa.exceptions.BadRequestException;
 import edu.upc.dsa.exceptions.ConflictException;
 import edu.upc.dsa.exceptions.NotFoundException;
@@ -17,7 +14,9 @@ public interface GameManager {
     User registerUser(Credentials credentials) throws BadRequestException, ConflictException;
     User loginUser(Credentials credentials) throws BadRequestException, NotFoundException, UnauthorizedException;
     User getUserByUsername(String username) throws NotFoundException;
-    void deleteUserByUsername(String username, String password) throws BadRequestException, NotFoundException, UnauthorizedException;
+    AuthResponse loginWithToken(Credentials credentials) throws BadRequestException, NotFoundException, UnauthorizedException;
+    User getUserByToken(String authHeader) throws UnauthorizedException;
+    void deleteUserByToken(String authHeader) throws UnauthorizedException;
 
     // 2. TRADUCCIÓ NOM -> ID INTERN
     String getUserIdByUsername(String username) throws NotFoundException;

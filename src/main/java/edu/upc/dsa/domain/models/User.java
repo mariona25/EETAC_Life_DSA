@@ -15,25 +15,25 @@ public class User {
     private boolean isGraduated;
     private List<String> passedMinigames;
 
-    // 1. Constructor buit (obligatori per a Jersey/JSON i genera l'ID automàtic)
+    // 1. Empty constructor (required by Jersey/Jackson for JSON serialization; generates an automatic ID and default stats)
     public User() {
         this.idUser = RandomUtils.getId();
         this.ects = 0;
-        this.energy = 100;
-        this.coins = 20;
+        this.energy = 100; //PENDENT A CANVIAR SEGONS ELS VALORS QUE DECIDIM
+        this.coins = 20; //PENDENT A CANVIAR SEGONS ELS VALORS QUE DECIDIM
         this.isGraduated = false;
         this.passedMinigames = new ArrayList<>();
     }
 
-    // 2. Constructor per crear un usuari nou (ara inclou email)
+    // 2. Constructor for creating a new user (includes username, email, and password)
     public User(String username, String email, String password) {
-        this(); // Crida al constructor buit per generar l'ID i posar 0 ECTS, 100 Energia, 20 Monedes
+        this(); // Calls the empty constructor to generate the ID and set 0 ECTS, 100 Energy, 20 Coins
         this.username = username;
         this.email = email;
         this.password = password;
     }
 
-    // Getters i Setters
+    // Getters and Setters
     public String getIdUser() { return idUser; }
     public void setIdUser(String idUser) { this.idUser = idUser; }
 
