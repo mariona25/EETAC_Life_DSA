@@ -1,3 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">EETAC Life</string>
+
+    <string name="back">← Volver</string>
+    <string name="logout">Cerrar sesión</string>
+
+    <string name="loading_profile">Cargando datos del estudiante…</string>
+    <string name="loading_menu">Cargando productos…</string>
+    <string name="error_connection">No se ha podido conectar con el servidor.</string>
+    <string name="error_empty_response">El servidor ha devuelto una respuesta vacía.</string>
+    <string name="error_http">Error del servidor (HTTP %1$d).</string>
+
+    <string name="home_title">Inicio</string>
+    <string name="home_welcome">¡Hola, %1$s!</string>
+    <string name="home_subtitle">Tu información académica, siempre al día.</string>
+    <string name="home_shortcuts">Accesos rápidos</string>
+    <string name="go_shop">Ir a la cafetería</string>
+    <string name="go_profile">Ver mi perfil</string>
+
+    <string name="stats_ects_label">ECTS</string>
+    <string name="stats_energy_label">Energía</string>
+    <string name="stats_coins_label">Monedas</string>
+    <string name="stats_ects_value">%1$d</string>
+    <string name="stats_energy_value">%1$d</string>
+    <string name="stats_coins_value">%1$d</string>
+
+    <string name="profile_title">Mi perfil</string>
+    <string name="profile_user_label">Estudiante</string>
+    <string name="profile_progress_title">Mi progreso</string>
+    <string name="profile_graduated">Graduado</string>
+    <string name="profile_in_progress">Estudios en curso</string>
+    <string name="profile_completed">Minijuegos superados: %1$d</string>
+
+    <string name="shop_title">Cafetería</string>
+    <string name="shop_subtitle">Recupera energía con tus monedas del campus.</string>
+    <string name="shop_catalog_title">Menú disponible</string>
+    <string name="shop_menu_hint">Selecciona un producto para comprarlo.</string>
+    <string name="shop_empty">No hay productos disponibles.</string>
+    <string name="shop_price">%1$d monedas</string>
+    <string name="shop_recovery">+%1$d energía</string>
+    <string name="shop_buy">Comprar</string>
+    <string name="shop_purchase_ok">Compra realizada correctamente.</string>
 </resources>
