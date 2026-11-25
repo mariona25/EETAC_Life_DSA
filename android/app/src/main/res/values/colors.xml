@@ -2,4 +2,11 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="eetac_bg">#FFF5F7FB</color>
+    <color name="eetac_surface">#FFFFFFFF</color>
+    <color name="eetac_text">#FF192840</color>
+    <color name="eetac_muted">#FF65738A</color>
+    <color name="eetac_accent">#FF304A87</color>
+    <color name="eetac_border">#FFDCE5F0</color>
 </resources>
